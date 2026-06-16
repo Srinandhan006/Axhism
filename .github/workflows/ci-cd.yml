@@ -47,3 +47,50 @@ jobs:
       - name: Frontend Build
         working-directory: frontend
         run: npm run build
+
+  docker:
+
+    needs: checks
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Backend Image
+
+      - name: Build Backend Image
+        run: |
+          docker build \
+          -t srinandhan/backend-demo:latest \
+          -t srinandhan/backend-demo:${{ github.sha }} \
+          ./backend
+
+      - name: Push Backend Latest
+        run: docker push srinandhan/backend-demo:latest
+
+      - name: Push Backend SHA
+        run: docker push srinandhan/backend-demo:${{ github.sha }}
+
+      # Frontend Image
+
+      - name: Build Frontend Image
+        run: |
+          docker build \
+          -t srinandhan/frontend-demo:latest \
+          -t srinandhan/frontend-demo:${{ github.sha }} \
+          ./frontend
+
+      - name: Push Frontend Latest
+        run: docker push srinandhan/frontend-demo:latest
+
+      - name: Push Frontend SHA
+        run: docker push srinandhan/frontend-demo:${{ github.sha }}
