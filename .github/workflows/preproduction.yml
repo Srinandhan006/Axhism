@@ -19,23 +19,23 @@ jobs:
       - name: Build Backend
         run: |
           docker build \
-          -t 167.233.115.93:3000/sri/Axhism/backend:latest \
-          -t 167.233.115.93:3000/sri/Axhism/backend:${{ github.sha }} \
+          -t 167.233.115.93:3000/sri/axhism/backend:latest \
+          -t 167.233.115.93:3000/sri/axhism/backend:${{ github.sha }} \
           ./backend
 
       - name: Push Backend
         run: |
-          docker push 167.233.115.93:3000/sri/Axhism/backend:latest
-          docker push 167.233.115.93:3000/sri/Axhism/backend:${{ github.sha }}
+          docker push 167.233.115.93:3000/sri/axhism/backend:latest
+          docker push 167.233.115.93:3000/sri/axhism/backend:${{ github.sha }}
 
       - name: Build Frontend
         run: |
           docker build \
-          -t 167.233.115.93:3000/sri/Axhism/frontend:latest \
-          -t 167.233.115.93:3000/sri/Axhism/frontend:${{ github.sha }} \
+          -t 167.233.115.93:3000/sri/axhism/frontend:latest \
+          -t 167.233.115.93:3000/sri/axhism/frontend:${{ github.sha }} \
           ./frontend
 
       - name: Push Frontend
         run: |
-          docker push 167.233.115.93:3000/sri/Axhism/frontend:latest
-          docker push 167.233.115.93:3000/sri/Axhism/frontend:${{ github.sha }}
+          docker push 167.233.115.93:3000/sri/axhism/frontend:latest
+          docker push 167.233.115.93:3000/sri/axhism/frontend:${{ github.sha }}
