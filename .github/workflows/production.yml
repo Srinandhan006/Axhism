@@ -1,0 +1,39 @@
+name: Production Deployment (Deploy Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (git sha or latest)"
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+
+            echo "Logging into registry..."
+
+            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+
+            echo "Pulling image..."
+            docker pull ${{ secrets.REGISTRY_USERNAME }}/backend:${{ github.event.inputs.image_tag }}
+
+            echo "Stopping old container..."
+            docker stop backend || true
+            docker rm backend || true
+
+            echo "Starting new container..."
+            docker run -d \
+              --name backend \
+              -p 3000:3000 \
+              --restart always \
+              ${{ secrets.REGISTRY_USERNAME }}/backend:${{ github.event.inputs.image_tag }}
