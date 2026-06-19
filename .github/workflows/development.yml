@@ -1,0 +1,52 @@
+name: Development
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Backend
+
+      - name: Install Backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Backend Lint
+        working-directory: backend
+        run: npm run lint
+
+      - name: Backend Format Check
+        working-directory: backend
+        run: npm run format:check
+
+      - name: Backend Type Check
+        working-directory: backend
+        run: npm run typecheck
+
+      - name: Backend Build
+        working-directory: backend
+        run: npm run build
+
+      # Frontend
+
+      - name: Install Frontend
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Frontend Build
+        working-directory: frontend
+        run: npm run build
