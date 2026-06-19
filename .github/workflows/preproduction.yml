@@ -1,0 +1,41 @@
+name: PreProduction
+on:
+  push:
+    branches:
+      - pre-prod
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Registry
+        run: |
+          echo "${{ secrets.REGISTRY_TOKEN }}" | docker login 167.233.115.93:3000 \
+            -u "${{ secrets.REGISTRY_USERNAME }}" \
+            --password-stdin
+
+      - name: Build Backend
+        run: |
+          docker build \
+          -t 167.233.115.93:3000/sri/backend:latest \
+          -t 167.233.115.93:3000/sri/backend:${{ github.sha }} \
+          ./backend
+
+      - name: Push Backend
+        run: |
+          docker push 167.233.115.93:3000/sri/backend:latest
+          docker push 167.233.115.93:3000/sri/backend:${{ github.sha }}
+
+      - name: Build Frontend
+        run: |
+          docker build \
+          -t 167.233.115.93:3000/sri/frontend:latest \
+          -t 167.233.115.93:3000/sri/frontend:${{ github.sha }} \
+          ./frontend
+
+      - name: Push Frontend
+        run: |
+          docker push 167.233.115.93:3000/sri/frontend:latest
+          docker push 167.233.115.93:3000/sri/frontend:${{ github.sha }}
