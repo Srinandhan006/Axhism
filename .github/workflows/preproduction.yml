@@ -2,7 +2,7 @@ name: PreProduction
 on:
   push:
     branches:
-      - pre-prod
+      - preprod
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
