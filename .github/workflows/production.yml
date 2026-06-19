@@ -1,52 +1,102 @@
-name: Production Deployment
+name: Production Deploy
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Production Server via SSH
+      - name: STEP 1 - Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: STEP 2 - Test SSH Connection
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
+            echo "SSH connection successful"
+            hostname
 
-            echo "Logging into Gitea Registry..."
-
-            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login IP:3000 \
+      - name: STEP 3 - Login to Gitea Registry
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login 167.233.115.93:3000 \
               -u "${{ secrets.REGISTRY_USERNAME }}" \
               --password-stdin
 
-            echo "Pulling latest backend image..."
-            docker pull 167.233.115.93:3000/sri/axhism/backend:latest
+      - name: STEP 4 - Pull Backend Latest
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            docker pull 167.233.115.93:3000/${{ secrets.REGISTRY_USERNAME }}/backend:latest
 
-            echo "Pulling latest frontend image..."
-            docker pull 167.233.115.93:3000/sri/axhism/frontend:latest
+      - name: STEP 5 - Pull Frontend Latest
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            docker pull IP:3000/${{ secrets.REGISTRY_USERNAME }}/frontend:latest
 
-            echo "Stopping old containers..."
+      - name: STEP 6 - Stop Old Containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
             docker stop backend || true
             docker rm backend || true
-
             docker stop frontend || true
             docker rm frontend || true
 
-            echo "Starting backend..."
+      - name: STEP 7 - Start Backend Container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
             docker run -d \
               --name backend \
               -p 3000:3000 \
               --restart always \
-              167.233.115.93:3000/sri/axhism/backend:latest
+              IP:3000/${{ secrets.REGISTRY_USERNAME }}/backend:latest
 
-            echo "Starting frontend..."
+      - name: STEP 8 - Start Frontend Container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
             docker run -d \
               --name frontend \
               -p 80:80 \
               --restart always \
-              IP:3000/USERNAME/frontend:latest
+              IP:3000/${{ secrets.REGISTRY_USERNAME }}/frontend:latest
 
-            echo "Production deployment complete."
+      - name: STEP 9 - Health Check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            docker ps
+            docker logs backend --tail 20 || true
+            docker logs frontend --tail 20 || true
