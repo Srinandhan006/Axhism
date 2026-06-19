@@ -9,9 +9,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Test Environment
+      - name: Deploy Production
         run: |
-          pwd
-          whoami
-          which docker || true
-          docker version || true
+          cd /root/bluvern/devops/deployments/production
+          docker compose pull
+          docker compose up -d
