@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - preprod
+  pull_request:
+    branches:
+      - preprod
+          
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
